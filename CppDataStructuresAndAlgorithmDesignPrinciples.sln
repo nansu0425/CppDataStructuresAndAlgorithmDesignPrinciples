@@ -3,6 +3,24 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.35122.118
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lesson01", "Lesson01", "{AC49C7D7-2AFC-4240-9184-86BF423DF1AB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lesson02", "Lesson02", "{E9B8D166-FF63-4B85-A9BA-92C4A0B740CA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lesson03", "Lesson03", "{0E4519EE-06E6-4693-B3C0-59256B4B7686}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lesson04", "Lesson04", "{402A9F9E-55B8-4EB8-8093-370036FE8932}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lesson05", "Lesson05", "{323ABE1B-4D1B-442E-A57A-CE14AE1D0281}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lesson06", "Lesson06", "{B505E759-0D17-4E0E-BC1D-29DD70CE752D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lesson07", "Lesson07", "{3315D6DA-B898-472D-9B3B-65B3FF053473}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lesson08", "Lesson08", "{FCC41E38-F981-4255-9D48-24661E84D312}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lesson09", "Lesson09", "{924E1F40-A2B2-4ED9-8D94-90B254E3DCD3}"
+EndProject
 Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
