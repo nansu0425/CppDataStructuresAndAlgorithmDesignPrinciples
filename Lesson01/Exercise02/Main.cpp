@@ -8,7 +8,7 @@ auto buildArray(Args&&... args) -> std::array<typename std::common_type<Args...>
 {
 	using CommonType = typename std::common_type<Args...>::type;
 
-	return {std::forward<CommonType>((Args&&)args)...};
+	return {std::forward<CommonType>(static_cast<Args&&>(args))...};
 }
 
 int main()

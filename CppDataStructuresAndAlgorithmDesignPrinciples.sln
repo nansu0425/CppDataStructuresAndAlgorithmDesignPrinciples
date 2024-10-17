@@ -23,7 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lesson09", "Lesson09", "{92
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Exercise01", "Lesson01\Exercise01\Exercise01.vcxproj", "{B1DB20D4-3379-4963-B8CB-50DEC1B1518A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Exercise02", "Exercise02\Exercise02.vcxproj", "{5CBD450B-1E7F-4C7C-B1BC-1D93BED58C34}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Exercise02", "Lesson01\Exercise02\Exercise02.vcxproj", "{5CBD450B-1E7F-4C7C-B1BC-1D93BED58C34}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
