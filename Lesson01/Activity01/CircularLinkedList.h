@@ -163,11 +163,12 @@ public:
 	}
 
 	bool isEmpty() const { return (m_pHead == nullptr); }
+	NodePtr getPtrHead() const { return m_pHead; }
 
 	Iterator begin() const { return Iterator(m_pHead, m_pHead); }
 	Iterator end() const { return Iterator(m_pHead, nullptr); }
 
-	Iterator find(const T& data)
+	Iterator find(const T& data) const
 	{
 		Iterator iter = begin();
 

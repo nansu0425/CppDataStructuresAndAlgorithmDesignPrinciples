@@ -1,15 +1,47 @@
-﻿#include "CircularLinkedList.h"
+﻿#include "MusicPlaylist.h"
 
 int main()
 {
-	CircularLinkedList<int> list = {0, 1, 2, 3, 4};
+	Playlist playlist =
+	{
+		Music{"Back In Black"},
+		Music{"Roundabout"},
+		Music{"Owner of a Lonely Heart"},
+		Music{"Don't Stop Believin'"},
+		Music{"Hold the Line"},
+	};
 
-	list.insert(list.begin(), -1);
-	list.insert(list.find(3), 2);
-	list.remove(list.find(1));
-	list.remove(list.find(0));
+	auto iter = playlist.begin();
 
-	std::cout << list << '\n';
+	playlist.insert(iter, "Starman");
+	
+	++iter;
+	++iter;
+
+	playlist.remove(iter);
+
+	std::cout << playlist << "\n";
+
+	playlist.insert(iter, "White Room");
+	playlist.insert(iter, "Thunderstruck");
+	playlist.remove("Hold the Line");
+
+	std::cout << playlist << "\n";
+
+	std::cout << std::endl;
+	std::cout << "Forward\n";
+	for (int cntPlay = 0; cntPlay < 10; ++cntPlay)
+	{
+		std::cout << playlist.moveNext(iter) << "\n";
+		
+	}
+
+	std::cout << std::endl;
+	std::cout << "Reverse\n";
+	for (int cntPlay = 0; cntPlay < 10; ++cntPlay)
+	{
+		std::cout << playlist.movePrev(iter) << "\n";
+	}
 
 	return 0;
 }
