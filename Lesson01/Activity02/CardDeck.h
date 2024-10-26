@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <array>
+#include <vector>
 #include <initializer_list>
 #include <random>
 #include <utility>
@@ -10,28 +10,23 @@
 class CardDeck
 {
 public:
-	template<typename... Args>
-	CardDeck(Args&&... args)
-		: m_stack{std::forward<Args>(args)...}
-		, m_rng(m_rd())
-	{
-		shuffle();
-	}
+	CardDeck();
 
-	void	shuffle();
-	void	pop();
-	void	pop(int idx);
-	int		getIdxCardRandomly();
+	void					shuffle();
+	void					pop();
+	void					remove(int idx);
+	int						getIdxCardRandomly();
 
 	const int&				operator[](int idx) const { return m_stack[idx]; }
 	friend std::ostream&	operator<<(std::ostream& os, const CardDeck& deck);
+
+	bool					isEmpty() const { return (m_idxTop == -1); }
 
 public:
 	static constexpr size_t			s_numCards = 13;
 
 private:
-	std::array<int, s_numCards>		m_stack;
-	int								m_idxTop = s_numCards - 1;
-	std::random_device				m_rd;
-	std::mt19937					m_rng;
+	std::vector<int>		m_stack;
+	std::mt19937			m_rng;
+	int						m_idxTop = s_numCards - 1;
 };

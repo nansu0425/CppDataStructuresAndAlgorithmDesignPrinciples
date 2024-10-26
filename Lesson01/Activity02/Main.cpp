@@ -1,19 +1,32 @@
-﻿#include "CardDeck.h"
+﻿#include "Player.h"
 
 int main()
 {
-	CardDeck deck = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+	PlayerManager playerManager(4);
 
-	for (int cntChoice = 1; cntChoice <= 5; ++cntChoice)
+	while (playerManager.getNumPlayersCardsEmpty() == 0)
 	{
-		const int idxCard = deck.getIdxCardRandomly();
-		std::cout << cntChoice << "th choice: " << deck[idxCard] << "\n";
+		playerManager.chooseCardPlayers();
+		playerManager.printPlayers();
+		
+		if (playerManager.isMatchingCards())
+		{
+			playerManager.removeMatchingCards();
+		}
 
-		deck.pop(idxCard);
-
-		deck.shuffle();
-		std::cout << deck << "\n";
+		std::cout << "----------------------------------------------\n";
 	}
+
+	if (playerManager.getNumPlayersCardsEmpty() == 1)
+	{
+		std::cout << "Winner\n";
+	}
+	else
+	{
+		std::cout << "Draw\n";
+	}
+
+	playerManager.printPlayersCardsEmpty();
 
 	return 0;
 }
