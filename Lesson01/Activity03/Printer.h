@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <queue>
 #include <string>
 #include <iostream>
 
@@ -21,4 +22,18 @@ private:
 	int				m_numPages;
 };
 
-std::ostream&		operator<<(std::ostream& os, const Job& job);
+std::ostream& operator<<(std::ostream& os, const Job& job);
+
+class Printer
+{
+private:
+	using Queue		= std::queue<Job>;
+
+public:
+	void			AddJob(const std::string userRequested, int numPages = 1);
+	void			ProcessJobs();
+
+private:
+	Queue			m_jobs;
+	int				m_nextId = 0;
+};

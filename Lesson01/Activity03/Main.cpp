@@ -1,10 +1,15 @@
-﻿#include "Job.h"
+﻿#include "Printer.h"
 
 int main()
 {
-	Job job("Jun", 123, 3);
+	Printer printer;
 
-	std::cout << job;
+	printer.AddJob("Jun");
+	printer.AddJob("MinJu", 2);
+	printer.AddJob("Jin");
+	printer.AddJob("Gang", 4);
+
+	printer.ProcessJobs();
 
 	return 0;
 }
