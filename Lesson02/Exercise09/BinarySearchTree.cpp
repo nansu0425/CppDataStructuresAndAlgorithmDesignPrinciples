@@ -93,7 +93,7 @@ void BinarySearchTree::DoInorderTraversal(std::ostream& os) const
 	assert(numberVisits == m_numberNodes);
 }
 
-void BinarySearchTree::DoInorderTraversal(std::ostream& os, Node* pCurrent, int& numberVisits) const
+void BinarySearchTree::DoInorderTraversal(std::ostream& os, const Node* pCurrent, int& numberVisits) const
 {
 	if (pCurrent == nullptr)
 	{
@@ -113,6 +113,26 @@ void BinarySearchTree::DoInorderTraversal(std::ostream& os, Node* pCurrent, int&
 
 	os << ", ";
 	DoInorderTraversal(os, pCurrent->pRight, numberVisits);
+}
+
+Node* BinarySearchTree::GetSuccessor(const Node* pRoot)
+{
+	assert(pRoot != nullptr);
+
+	Node* pCurrent = pRoot->pRight;
+
+	if (pCurrent == nullptr)
+	{
+		return pCurrent;
+	}
+
+	// 루트 노드의 오른쪽 서브트리에서 가장 작은 값을 갖는 노드를 찾는다
+	while (pCurrent->pLeft != nullptr)
+	{
+		pCurrent = pCurrent->pLeft;
+	}
+
+	return pCurrent;
 }
 
 std::ostream& operator<<(std::ostream& os, const Node* pNode)

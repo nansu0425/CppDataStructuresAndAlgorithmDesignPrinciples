@@ -16,13 +16,14 @@ public:
 	void		Insert(int value);
 	void		DoInorderTraversal(std::ostream& os) const;
 	void		Remove(int value);
-	Node*		GetInorderSuccessor(Node* pPredecessor) const;
 	bool		IsEmpty() const;
+
+	static Node*	GetSuccessor(const Node* pRoot);
 
 private:
 	Node*		Find(int value, Node* pCurrent) const;
 	Node*		Insert(int value, Node* pCurrent);
-	void		DoInorderTraversal(std::ostream& os, Node* pCurrent, int& numberVisits) const;
+	void		DoInorderTraversal(std::ostream& os, const Node* pCurrent, int& numberVisits) const;
 	Node*		Remove(int value, Node* pRoot);
 
 private:

@@ -15,7 +15,8 @@ int main()
 	bst.Insert(8);
 	bst.Insert(7);
 
-	std::cout << bst;
+	std::cout << bst << std::endl;
+	std::cout << BinarySearchTree::GetSuccessor(bst.Find(5)) << std::endl;
 
 	return 0;
 }
