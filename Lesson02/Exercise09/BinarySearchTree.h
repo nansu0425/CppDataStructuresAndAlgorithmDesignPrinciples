@@ -12,11 +12,14 @@ struct Node
 class BinarySearchTree
 {
 public:
+	~BinarySearchTree();
+
 	Node*		Find(int value) const;
 	void		Insert(int value);
 	void		DoInorderTraversal(std::ostream& os) const;
 	void		Remove(int value);
 	bool		IsEmpty() const;
+	void		Clear();
 
 	static Node*	GetSuccessor(const Node* pRoot);
 
@@ -24,7 +27,8 @@ private:
 	Node*		Find(int value, Node* pCurrent) const;
 	Node*		Insert(int value, Node* pCurrent);
 	void		DoInorderTraversal(std::ostream& os, const Node* pCurrent, int& numberVisits) const;
-	Node*		Remove(int value, Node* pRoot);
+	Node*		Remove(int value, Node* pCurrent);
+	Node*		Clear(Node* pCurrent);
 
 private:
 	Node*		m_pRoot = nullptr;
