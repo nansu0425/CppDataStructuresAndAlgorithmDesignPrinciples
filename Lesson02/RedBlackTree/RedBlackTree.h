@@ -32,16 +32,25 @@ class RedBlackTree
 private:
 	using			Node = Node<K, V>;
 
+	enum class		Rotation
+	{
+		None,
+		Right,
+		RightLeft,
+		Left,
+		LeftRight,
+	};
+
 public:
 	void			Insert(K key, V value);
 
 private:
-	static Node*	Insert(K key, V value, Node* pParent, Node* pChild);
+	static Node*	Insert(K key, V value, Node* pCurrent);
 	static Node*	RotateRight(Node* pRoot);
 	static Node*	RotateLeft(Node* pRoot);
 	static Node*	RotateRightLeft(Node* pRoot);
 	static Node*	RotateLeftRight(Node* pRoot);
-	static Node*	Balance(Node* pGrandParent, Node* pParent, Node* pChild);
+	static Node*	HandleRedRed(Node* pGrandParent, Rotation rotation);
 
 private:
 	Node*			pRoot = nullptr;
@@ -50,74 +59,112 @@ private:
 template<typename K, typename V>
 inline void RedBlackTree<K, V>::Insert(K key, V value)
 {
-	if (pRoot == nullptr)
-	{
-		pRoot = new Node(key, value);
-	}
-	else if (pRoot->key < key)
-	{
-		pRoot = Insert(key, value, pRoot, pRoot->pRight);
-	}
-	else if (key < pRoot->key)
-	{
-		pRoot = Insert(key, value, pRoot, pRoot->pLeft);
-	}
+	pRoot = Insert(key, value, pRoot);
 	
 	// 루트 노드는 항상 블랙
 	pRoot->isRed = false;
 }
 
 template<typename K, typename V>
-inline Node<K, V>* RedBlackTree<K, V>::Insert(K key, V value, Node* pParent, Node* pChild)
+inline Node<K, V>* RedBlackTree<K, V>::Insert(K key, V value, Node* pCurrent)
 {
-	// 자식 노드로 삽입해야 하는 경우
-	if (pChild == nullptr)
-	{
-		if (pParent->key < key)
-		{
-			pParent->pRight = new Node(key, value);
-		}
-		else if (key < pParent->key)
-		{
-			pParent->pLeft = new Node(key, value);
-		}
+	static bool s_isRedRed = false;
+	static bool s_isRightChild = false;
+	static bool s_isRotated = false;
 
-		return pParent;
+	s_isRotated = false;
+
+	// 현재 위치가 삽입할 위치
+	if (pCurrent == nullptr)
+	{
+		pCurrent = new Node(key, value);
+
+		return pCurrent;
 	}
 
-	bool isRightChild = (pParent->key < pChild->key);
-	bool isLeftChild = (pChild->key < pParent->key);
-
-	// 자식보다 삽입하려는 키가 큰 경우
-	if (pChild->key < key)
+	// 오른쪽 서브트리에 삽입
+	if (pCurrent->key < key)
 	{
-		if (isRightChild)
+		pCurrent->pRight = Insert(key, value, pCurrent->pRight);
+
+		// 회전이 한번이라도 발생했다면 레드 노드는 연속적으로 존재하지 않는다
+		if (s_isRotated)
 		{
-			pParent->pRight = Insert(key, value, pChild, pChild->pRight);
-			pParent = Balance(pParent, pParent->pRight, pParent->pRight->pRight);
+			return pCurrent;
 		}
-		else if (isLeftChild)
+
+		if (s_isRedRed)
 		{
-			pParent->pLeft = Insert(key, value, pChild, pChild->pRight);
-			pParent = Balance(pParent, pParent->pLeft, pParent->pLeft->pRight);
+			// 왼쪽 자식 노드가 레드인지 확인
+			if ((pCurrent->pLeft != nullptr) &&
+				pCurrent->pLeft->isRed)
+			{
+				pCurrent = HandleRedRed(pCurrent, 
+										Rotation::None);
+			}
+			else
+			{
+				pCurrent = HandleRedRed(pCurrent,
+										(s_isRightChild)
+										? Rotation::Left
+										: Rotation::RightLeft);
+
+				s_isRotated = true;
+			}
+		}
+
+		// 레드 노드 연속으로 존재하는지 검사
+		s_isRedRed = (pCurrent->isRed &&
+					  pCurrent->pRight->isRed);
+
+		if (s_isRedRed)
+		{
+			s_isRightChild = true;
+		}
+
+	}
+	// 왼쪽 서브트리에 삽입
+	else if (key < pCurrent->key)
+	{
+		pCurrent->pLeft = Insert(key, value, pCurrent->pLeft);
+
+		// 회전이 한번이라도 발생했다면 레드 노드는 연속적으로 존재하지 않는다
+		if (s_isRotated)
+		{
+			return pCurrent;
+		}
+
+		if (s_isRedRed)
+		{
+			// 오른쪽 자식 노드가 레드인지 확인
+			if ((pCurrent->pRight != nullptr) &&
+				pCurrent->pRight->isRed)
+			{
+				pCurrent = HandleRedRed(pCurrent,
+										Rotation::None);
+			}
+			else
+			{
+				pCurrent = HandleRedRed(pCurrent,
+										(s_isRightChild)
+										? Rotation::LeftRight
+										: Rotation::Right);
+
+				s_isRotated = true;
+			}
+		}
+
+		// 레드 노드 연속으로 존재하는지 검사
+		s_isRedRed = (pCurrent->isRed &&
+					  pCurrent->pLeft->isRed);
+
+		if (s_isRedRed)
+		{
+			s_isRightChild = false;
 		}
 	}
-	// 자식보다 삽입하려는 키가 작은 경우
-	else if (key < pChild->key)
-	{
-		if (isRightChild)
-		{
-			pParent->pRight = Insert(key, value, pChild, pChild->pLeft);
-			pParent = Balance(pParent, pParent->pRight, pParent->pRight->pLeft);
-		}
-		else if (isLeftChild)
-		{
-			pParent->pLeft = Insert(key, value, pChild, pChild->pLeft);
-			pParent = Balance(pParent, pParent->pLeft, pParent->pLeft->pLeft);
-		}
-	}
 
-	return pParent;
+	return pCurrent;
 }
 
 template<typename K, typename V>
@@ -157,59 +204,42 @@ inline Node<K, V>* RedBlackTree<K, V>::RotateLeftRight(Node* pRoot)
 }
 
 template<typename K, typename V>
-inline Node<K, V>* RedBlackTree<K, V>::Balance(Node* pGrandParent, Node* pParent, Node* pChild)
+inline Node<K, V>* RedBlackTree<K, V>::HandleRedRed(Node* pGrandParent, Rotation rotation)
 {
-	if (!(pParent->isRed && pChild->isRed))
+	switch (rotation)
 	{
-		return pGrandParent;
-	}
-
-	Node* pUncle = (pGrandParent->pLeft == pParent) 
-				   ? pGrandParent->pRight 
-				   : pGrandParent->pLeft;
-
-	// Recoloring
-	if ((pUncle != nullptr) && 
-		(pUncle->isRed))
-	{
-		pParent->isRed = false;
-		pUncle->isRed = false;
+	case Rotation::None:
 		pGrandParent->isRed = true;
-	}
-	// Rotation
-	else
-	{
-		bool isRightParent = (pGrandParent->pRight == pParent);
-		bool isRightChild = (pParent->pRight == pChild);
+		pGrandParent->pLeft->isRed = false;
+		pGrandParent->pRight->isRed = false;
+		break;
 
-		if (isRightParent)
-		{
-			if (isRightChild)
-			{
-				pGrandParent = RotateLeft(pGrandParent);
-			}
-			else
-			{
-				pGrandParent = RotateRightLeft(pGrandParent);
-			}
+	case Rotation::Left:
+		pGrandParent = RotateLeft(pGrandParent);
+		pGrandParent->isRed = false;
+		pGrandParent->pLeft->isRed = true;
+		break;
 
-			pGrandParent->isRed = false;
-			pGrandParent->pLeft->isRed = true;
-		}
-		else
-		{
-			if (isRightChild)
-			{
-				pGrandParent = RotateLeftRight(pGrandParent);
-			}
-			else
-			{
-				pGrandParent = RotateRight(pGrandParent);
-			}
+	case Rotation::LeftRight:
+		pGrandParent = RotateLeftRight(pGrandParent);
+		pGrandParent->isRed = false;
+		pGrandParent->pRight->isRed = true;
+		break;
 
-			pGrandParent->isRed = false;
-			pGrandParent->pRight->isRed = true;
-		}
+	case Rotation::Right:
+		pGrandParent = RotateRight(pGrandParent);
+		pGrandParent->isRed = false;
+		pGrandParent->pRight->isRed = true;
+		break;
+
+	case Rotation::RightLeft:
+		pGrandParent = RotateRightLeft(pGrandParent);
+		pGrandParent->isRed = false;
+		pGrandParent->pLeft->isRed = true;
+		break;
+
+	default:
+		break;
 	}
 
 	return pGrandParent;
