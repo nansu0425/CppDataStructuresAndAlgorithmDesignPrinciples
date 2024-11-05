@@ -45,7 +45,7 @@ public:
 	void			Insert(K key, V value);
 
 private:
-	static Node*	Insert(K key, V value, Node* pCurrent);
+	Node*			Insert(K key, V value, Node* pCurrent);
 	static Node*	RotateRight(Node* pRoot);
 	static Node*	RotateLeft(Node* pRoot);
 	static Node*	RotateRightLeft(Node* pRoot);
@@ -53,27 +53,26 @@ private:
 	static Node*	HandleRedRed(Node* pGrandParent, Rotation rotation);
 
 private:
-	Node*			pRoot = nullptr;
+	Node*			m_pRoot = nullptr;
+	bool			m_isRedRed = false;
+	bool			m_isRedRedRight = false;
+	bool			m_isRotated = false;
 };
 
 template<typename K, typename V>
 inline void RedBlackTree<K, V>::Insert(K key, V value)
 {
-	pRoot = Insert(key, value, pRoot);
+	m_isRotated = false;
+
+	m_pRoot = Insert(key, value, m_pRoot);
 	
 	// 루트 노드는 항상 블랙
-	pRoot->isRed = false;
+	m_pRoot->isRed = false;
 }
 
 template<typename K, typename V>
 inline Node<K, V>* RedBlackTree<K, V>::Insert(K key, V value, Node* pCurrent)
 {
-	static bool s_isRedRed = false;
-	static bool s_isRightChild = false;
-	static bool s_isRotated = false;
-
-	s_isRotated = false;
-
 	// 현재 위치가 삽입할 위치
 	if (pCurrent == nullptr)
 	{
@@ -88,12 +87,12 @@ inline Node<K, V>* RedBlackTree<K, V>::Insert(K key, V value, Node* pCurrent)
 		pCurrent->pRight = Insert(key, value, pCurrent->pRight);
 
 		// 회전이 한번이라도 발생했다면 레드 노드는 연속적으로 존재하지 않는다
-		if (s_isRotated)
+		if (m_isRotated)
 		{
 			return pCurrent;
 		}
 
-		if (s_isRedRed)
+		if (m_isRedRed)
 		{
 			// 왼쪽 자식 노드가 레드인지 확인
 			if ((pCurrent->pLeft != nullptr) &&
@@ -105,21 +104,21 @@ inline Node<K, V>* RedBlackTree<K, V>::Insert(K key, V value, Node* pCurrent)
 			else
 			{
 				pCurrent = HandleRedRed(pCurrent,
-										(s_isRightChild)
+										(m_isRedRedRight)
 										? Rotation::Left
 										: Rotation::RightLeft);
 
-				s_isRotated = true;
+				m_isRotated = true;
 			}
 		}
 
 		// 레드 노드 연속으로 존재하는지 검사
-		s_isRedRed = (pCurrent->isRed &&
+		m_isRedRed = (pCurrent->isRed &&
 					  pCurrent->pRight->isRed);
 
-		if (s_isRedRed)
+		if (m_isRedRed)
 		{
-			s_isRightChild = true;
+			m_isRedRedRight = true;
 		}
 
 	}
@@ -129,12 +128,12 @@ inline Node<K, V>* RedBlackTree<K, V>::Insert(K key, V value, Node* pCurrent)
 		pCurrent->pLeft = Insert(key, value, pCurrent->pLeft);
 
 		// 회전이 한번이라도 발생했다면 레드 노드는 연속적으로 존재하지 않는다
-		if (s_isRotated)
+		if (m_isRotated)
 		{
 			return pCurrent;
 		}
 
-		if (s_isRedRed)
+		if (m_isRedRed)
 		{
 			// 오른쪽 자식 노드가 레드인지 확인
 			if ((pCurrent->pRight != nullptr) &&
@@ -146,21 +145,21 @@ inline Node<K, V>* RedBlackTree<K, V>::Insert(K key, V value, Node* pCurrent)
 			else
 			{
 				pCurrent = HandleRedRed(pCurrent,
-										(s_isRightChild)
+										(m_isRedRedRight)
 										? Rotation::LeftRight
 										: Rotation::Right);
 
-				s_isRotated = true;
+				m_isRotated = true;
 			}
 		}
 
 		// 레드 노드 연속으로 존재하는지 검사
-		s_isRedRed = (pCurrent->isRed &&
+		m_isRedRed = (pCurrent->isRed &&
 					  pCurrent->pLeft->isRed);
 
-		if (s_isRedRed)
+		if (m_isRedRed)
 		{
-			s_isRightChild = false;
+			m_isRedRedRight = false;
 		}
 	}
 
