@@ -42,12 +42,16 @@ private:
 	};
 
 public:
+	~RedBlackTree();
+
 	void			Insert(K key, V value);
 	void			Remove(K key);
+	void			Clear();
 
 private:
 	Node*			Insert(K key, V value, Node* pCurrent);
 	Node*			Remove(K key, Node* pCurrent);
+	void			Clear(Node* pCurrent);
 
 	static Node*	RotateRight(Node* pRoot);
 	static Node*	RotateLeft(Node* pRoot);
@@ -62,6 +66,12 @@ private:
 	bool			m_isRedRedRight = false;
 	bool			m_isRotated = false;
 };
+
+template<typename K, typename V>
+inline RedBlackTree<K, V>::~RedBlackTree()
+{
+	Clear();
+}
 
 template<typename K, typename V>
 inline void RedBlackTree<K, V>::Insert(K key, V value)
@@ -179,6 +189,28 @@ inline void RedBlackTree<K, V>::Remove(K key)
 	}
 	
 	m_pRoot = Remove(key, m_pRoot);
+}
+
+template<typename K, typename V>
+inline void RedBlackTree<K, V>::Clear()
+{
+	Clear(m_pRoot);
+
+	m_pRoot = nullptr;
+}
+
+template<typename K, typename V>
+inline void RedBlackTree<K, V>::Clear(Node* pCurrent)
+{
+	if (pCurrent == nullptr)
+	{
+		return;
+	}
+
+	Clear(pCurrent->pRight);
+	Clear(pCurrent->pLeft);
+	
+	delete pCurrent;
 }
 
 template<typename K, typename V>
