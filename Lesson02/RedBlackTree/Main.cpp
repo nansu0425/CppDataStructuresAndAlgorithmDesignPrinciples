@@ -15,5 +15,9 @@ int main()
 	rbTree.Insert(3, "3");
 	rbTree.Insert(9, "9");
 
+	rbTree.Remove(4);
+	rbTree.Remove(3);
+	rbTree.Remove(5);
+
 	return 0;
 }

@@ -43,14 +43,18 @@ private:
 
 public:
 	void			Insert(K key, V value);
+	void			Remove(K key);
 
 private:
 	Node*			Insert(K key, V value, Node* pCurrent);
+	Node*			Remove(K key, Node* pCurrent);
+
 	static Node*	RotateRight(Node* pRoot);
 	static Node*	RotateLeft(Node* pRoot);
 	static Node*	RotateRightLeft(Node* pRoot);
 	static Node*	RotateLeftRight(Node* pRoot);
 	static Node*	HandleRedRed(Node* pGrandParent, Rotation rotation);
+	static Node*	GetSuccessor(Node* pRoot);
 
 private:
 	Node*			m_pRoot = nullptr;
@@ -167,6 +171,71 @@ inline Node<K, V>* RedBlackTree<K, V>::Insert(K key, V value, Node* pCurrent)
 }
 
 template<typename K, typename V>
+inline void RedBlackTree<K, V>::Remove(K key)
+{
+	if (m_pRoot == nullptr)
+	{
+		return;
+	}
+	
+	m_pRoot = Remove(key, m_pRoot);
+}
+
+template<typename K, typename V>
+inline Node<K, V>* RedBlackTree<K, V>::Remove(K key, Node* pCurrent)
+{
+	// 삭제하려는 키가 트리에 없는 경우
+	if (pCurrent == nullptr)
+	{
+		return pCurrent;
+	}
+
+	// 오른쪽 서브트리에서 삭제 키 탐색
+	if (pCurrent->key < key)
+	{
+		pCurrent->pRight = Remove(key, pCurrent->pRight);
+		return pCurrent;
+	}
+	// 왼쪽 서브트리에서 삭제 키 탐색
+	else if (key < pCurrent->key)
+	{
+		pCurrent->pLeft = Remove(key, pCurrent->pLeft);
+		return pCurrent;
+	}
+
+	const bool isLeftChild = (pCurrent->pLeft != nullptr);
+	const bool isRightChild = (pCurrent->pRight != nullptr);
+
+	// 삭제하려는 노드의 자식이 없는 경우
+	if (!isLeftChild && !isRightChild)
+	{
+		delete pCurrent;
+		pCurrent = nullptr;
+	}
+	// 삭제하려는 노드의 자식이 하나인 경우
+	else if (isLeftChild != isRightChild)
+	{
+		Node* pChild = (isLeftChild)
+					   ? pCurrent->pLeft 
+					   : pCurrent->pRight;
+
+		delete pCurrent;
+		pCurrent = pChild;
+	}
+	// 삭제하려는 노드의 자식이 두 개인 경우
+	else
+	{
+		Node* pSuccessor = GetSuccessor(pCurrent);
+
+		pCurrent->key = pSuccessor->key;
+		pCurrent->value = pSuccessor->value;
+		pCurrent->pRight = Remove(pSuccessor->key, pCurrent->pRight);
+	}
+
+	return pCurrent;
+}
+
+template<typename K, typename V>
 inline Node<K, V>* RedBlackTree<K, V>::RotateRight(Node* pRoot)
 {
 	Node* pNewRoot = pRoot->pLeft;
@@ -242,4 +311,22 @@ inline Node<K, V>* RedBlackTree<K, V>::HandleRedRed(Node* pGrandParent, Rotation
 	}
 
 	return pGrandParent;
+}
+
+template<typename K, typename V>
+inline Node<K, V>* RedBlackTree<K, V>::GetSuccessor(Node* pRoot)
+{
+	Node* pSuccessor = pRoot->pRight;
+
+	if (pSuccessor == nullptr)
+	{
+		return pSuccessor;
+	}
+
+	while (pSuccessor->pLeft != nullptr)
+	{
+		pSuccessor = pSuccessor->pLeft;
+	}
+
+	return pSuccessor;
 }
