@@ -7,7 +7,7 @@
 template<typename K, typename V>
 struct Node
 {
-	enum class	State
+	enum class	Color
 	{
 		red,
 		black,
@@ -20,7 +20,7 @@ struct Node
 	V			value;
 	Node*		pRight = nullptr;
 	Node*		pLeft = nullptr;
-	State		state = State::red;
+	Color		color = Color::red;
 
 				Node(K key, V value);
 };
@@ -66,14 +66,17 @@ private:
 	static Node*	RotateLeft(Node* pRoot);
 	static Node*	RotateRightLeft(Node* pRoot);
 	static Node*	RotateLeftRight(Node* pRoot);
-	static Node*	HandleRedRed(Node* pGrandParent, Rotation rotation);
+	static Node*	HandleConsecutiveReds(Node* pGrandParent, Rotation rotation);
 	static Node*	GetSuccessor(Node* pRoot);
+	static Node*	AddExtraBlack(Node* pCurrent, Node* pChild, bool& isDoubleBlack);
+	static Node*	HandleDoubleBlack(Node* pGrandParent, bool& isDoubleBlack);
 
 private:
 	Node*			m_pRoot = nullptr;
-	bool			m_isRedRed = false;
-	bool			m_isRedRedRight = false;
+	bool			m_isConsecutiveReds = false;
+	bool			m_isConsecutiveRedsRight = false;
 	bool			m_isRotated = false;
+	bool			m_isDoubleBlack = false;
 };
 
 template<typename K, typename V>
@@ -90,7 +93,7 @@ inline void RedBlackTree<K, V>::Insert(K key, V value)
 	m_pRoot = Insert(key, value, m_pRoot);
 	
 	// 루트 노드는 항상 블랙
-	m_pRoot->state = Node::State::black;
+	m_pRoot->color = Node::Color::black;
 }
 
 template<typename K, typename V>
@@ -115,33 +118,33 @@ inline Node<K, V>* RedBlackTree<K, V>::Insert(K key, V value, Node* pCurrent)
 			return pCurrent;
 		}
 
-		if (m_isRedRed)
+		if (m_isConsecutiveReds)
 		{
 			// 왼쪽 자식 노드가 레드인지 확인
 			if ((pCurrent->pLeft != nullptr) &&
-				(pCurrent->state == Node::State::red))
+				(pCurrent->color == Node::Color::red))
 			{
-				pCurrent = HandleRedRed(pCurrent, 
-										Rotation::none);
+				pCurrent = HandleConsecutiveReds(pCurrent, 
+												 Rotation::none);
 			}
 			else
 			{
-				pCurrent = HandleRedRed(pCurrent,
-										(m_isRedRedRight)
-										? Rotation::left
-										: Rotation::rightLeft);
+				pCurrent = HandleConsecutiveReds(pCurrent,
+												 (m_isConsecutiveRedsRight)
+												 ? Rotation::left
+												 : Rotation::rightLeft);
 
 				m_isRotated = true;
 			}
 		}
 
 		// 레드 노드 연속으로 존재하는지 검사
-		m_isRedRed = ((pCurrent->state == Node::State::red) &&
-					  (pCurrent->pRight->state == Node::State::red));
+		m_isConsecutiveReds = ((pCurrent->color == Node::Color::red) &&
+							   (pCurrent->pRight->color == Node::Color::red));
 
-		if (m_isRedRed)
+		if (m_isConsecutiveReds)
 		{
-			m_isRedRedRight = true;
+			m_isConsecutiveRedsRight = true;
 		}
 
 	}
@@ -156,33 +159,33 @@ inline Node<K, V>* RedBlackTree<K, V>::Insert(K key, V value, Node* pCurrent)
 			return pCurrent;
 		}
 
-		if (m_isRedRed)
+		if (m_isConsecutiveReds)
 		{
 			// 오른쪽 자식 노드가 레드인지 확인
 			if ((pCurrent->pRight != nullptr) &&
-				(pCurrent->pRight->state == Node::State::red))
+				(pCurrent->pRight->color == Node::Color::red))
 			{
-				pCurrent = HandleRedRed(pCurrent,
-										Rotation::none);
+				pCurrent = HandleConsecutiveReds(pCurrent,
+												 Rotation::none);
 			}
 			else
 			{
-				pCurrent = HandleRedRed(pCurrent,
-										(m_isRedRedRight)
-										? Rotation::leftRight
-										: Rotation::right);
+				pCurrent = HandleConsecutiveReds(pCurrent,
+												 (m_isConsecutiveRedsRight)
+												 ? Rotation::leftRight
+												 : Rotation::right);
 
 				m_isRotated = true;
 			}
 		}
 
 		// 레드 노드 연속으로 존재하는지 검사
-		m_isRedRed = ((pCurrent->state == Node::State::red) &&
-					  (pCurrent->pLeft->state == Node::State::red));
+		m_isConsecutiveReds = ((pCurrent->color == Node::Color::red) &&
+							   (pCurrent->pLeft->color == Node::Color::red));
 
-		if (m_isRedRed)
+		if (m_isConsecutiveReds)
 		{
-			m_isRedRedRight = false;
+			m_isConsecutiveRedsRight = false;
 		}
 	}
 
@@ -200,7 +203,7 @@ inline void RedBlackTree<K, V>::Delete(K key)
 	m_pRoot = Delete(key, m_pRoot);
 	
 	// 루트 노드는 항상 블랙
-	m_pRoot->state = Node::State::black;
+	m_pRoot->color = Node::Color::black;
 }
 
 template<typename K, typename V>
@@ -216,45 +219,108 @@ inline Node<K, V>* RedBlackTree<K, V>::Delete(K key, Node* pCurrent)
 	if (pCurrent->key < key)
 	{
 		pCurrent->pRight = Delete(key, pCurrent->pRight);
+		pCurrent = HandleDoubleBlack(pCurrent, m_isDoubleBlack);
+
 		return pCurrent;
 	}
 	// 왼쪽 서브트리에서 삭제 키 탐색
 	else if (key < pCurrent->key)
 	{
 		pCurrent->pLeft = Delete(key, pCurrent->pLeft);
+		pCurrent = HandleDoubleBlack(pCurrent, m_isDoubleBlack);
+
 		return pCurrent;
 	}
 
 	const bool isLeftChild = (pCurrent->pLeft != nullptr);
 	const bool isRightChild = (pCurrent->pRight != nullptr);
 
-	// 삭제하려는 노드의 자식이 없는 경우
-	if (!isLeftChild && !isRightChild)
-	{
-		delete pCurrent;
-		pCurrent = nullptr;	
-	}
-	// 삭제하려는 노드의 자식이 하나인 경우
-	else if (isLeftChild != isRightChild)
-	{
-		Node* pChild = (isLeftChild)
-					   ? pCurrent->pLeft 
-					   : pCurrent->pRight;
-
-		delete pCurrent;
-		pCurrent = pChild;
-	}
 	// 삭제하려는 노드의 자식이 두 개인 경우
-	else
+	if (isLeftChild && isRightChild)
 	{
 		Node* pSuccessor = GetSuccessor(pCurrent);
 
 		pCurrent->key = pSuccessor->key;
 		pCurrent->value = pSuccessor->value;
 		pCurrent->pRight = Delete(pSuccessor->key, pCurrent->pRight);
+		pCurrent = HandleDoubleBlack(pCurrent, m_isDoubleBlack);
+	}
+	else
+	{
+		Node* pChild = (isLeftChild)
+						? pCurrent->pLeft
+						: pCurrent->pRight;
+
+		switch (pCurrent->color)
+		{
+		// 삭제할 노드가 red면 바로 삭제
+		case Node::Color::red:
+			delete pCurrent;
+			pCurrent = pChild;
+			break;
+
+		// 삭제할 노드가 black이면 extra black을 붙인다
+		case Node::Color::black:
+			pCurrent = AddExtraBlack(pCurrent, pChild, m_isDoubleBlack);
+			break;
+
+		default:
+			break;
+		}
 	}
 
 	return pCurrent;
+}
+
+template<typename K, typename V>
+inline Node<K, V>* RedBlackTree<K, V>::AddExtraBlack(Node* pCurrent, Node* pChild, bool& isDoubleBlack)
+{
+	// leaf 노드인 경우 nil노드가 되면서 black이 붙는다
+	if (pChild == nullptr)
+	{
+		pCurrent->color = Node::Color::nilBlack;
+		isDoubleBlack = true;
+
+		return pCurrent;
+	}
+
+	// 현재 노드 삭제 후 자식 노드로 대체
+	delete pCurrent;
+	pCurrent = pChild;
+
+	switch (pCurrent->color)
+	{
+	// red에 extra blakc이 붙는 경우 black으로 바꿔주면 RB 트리 속성이 유지된다
+	case Node::Color::red:
+		pCurrent->color = Node::Color::black;
+		isDoubleBlack = false;
+		break;
+
+	case Node::Color::black:
+		pCurrent->color = Node::Color::blackBlack;
+		isDoubleBlack = true;
+		break;
+
+	default:
+		break;
+	}
+
+	return pCurrent;
+}
+
+template<typename K, typename V>
+inline Node<K, V>* RedBlackTree<K, V>::HandleDoubleBlack(Node* pGrandParent, bool& isDoubleBlack)
+{
+	if (!isDoubleBlack)
+	{
+		return pGrandParent;
+	}
+
+	// TODO: Double Black 처리 로직 구현
+
+	isDoubleBlack = false;
+
+	return pGrandParent;
 }
 
 template<typename K, typename V>
@@ -316,38 +382,38 @@ inline Node<K, V>* RedBlackTree<K, V>::RotateLeftRight(Node* pRoot)
 }
 
 template<typename K, typename V>
-inline Node<K, V>* RedBlackTree<K, V>::HandleRedRed(Node* pGrandParent, Rotation rotation)
+inline Node<K, V>* RedBlackTree<K, V>::HandleConsecutiveReds(Node* pGrandParent, Rotation rotation)
 {
 	switch (rotation)
 	{
 	case Rotation::none:
-		pGrandParent->state = Node::State::red;
-		pGrandParent->pLeft->state = Node::State::black;
-		pGrandParent->pRight->state = Node::State::black;
+		pGrandParent->color = Node::Color::red;
+		pGrandParent->pLeft->color = Node::Color::black;
+		pGrandParent->pRight->color = Node::Color::black;
 		break;
 
 	case Rotation::left:
 		pGrandParent = RotateLeft(pGrandParent);
-		pGrandParent->state = Node::State::black;
-		pGrandParent->pLeft->state = Node::State::red;
+		pGrandParent->color = Node::Color::black;
+		pGrandParent->pLeft->color = Node::Color::red;
 		break;
 
 	case Rotation::leftRight:
 		pGrandParent = RotateLeftRight(pGrandParent);
-		pGrandParent->state = Node::State::black;
-		pGrandParent->pRight->state = Node::State::red;
+		pGrandParent->color = Node::Color::black;
+		pGrandParent->pRight->color = Node::Color::red;
 		break;
 
 	case Rotation::right:
 		pGrandParent = RotateRight(pGrandParent);
-		pGrandParent->state = Node::State::black;
-		pGrandParent->pRight->state = Node::State::red;
+		pGrandParent->color = Node::Color::black;
+		pGrandParent->pRight->color = Node::Color::red;
 		break;
 
 	case Rotation::rightLeft:
 		pGrandParent = RotateRightLeft(pGrandParent);
-		pGrandParent->state = Node::State::black;
-		pGrandParent->pLeft->state = Node::State::red;
+		pGrandParent->color = Node::Color::black;
+		pGrandParent->pLeft->color = Node::Color::red;
 		break;
 
 	default:
