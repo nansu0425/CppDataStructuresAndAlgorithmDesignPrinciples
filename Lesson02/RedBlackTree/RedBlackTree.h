@@ -7,11 +7,20 @@
 template<typename K, typename V>
 struct Node
 {
+	enum class	State
+	{
+		red,
+		black,
+		redBlack,
+		blackBlack,
+		nilBlack,
+	};
+
 	K			key;
 	V			value;
 	Node*		pRight = nullptr;
 	Node*		pLeft = nullptr;
-	bool		isRed = true;
+	State		state = State::red;
 
 				Node(K key, V value);
 };
@@ -34,23 +43,23 @@ private:
 
 	enum class		Rotation
 	{
-		None,
-		Right,
-		RightLeft,
-		Left,
-		LeftRight,
+		none,
+		right,
+		rightLeft,
+		left,
+		leftRight,
 	};
 
 public:
-	~RedBlackTree();
+					~RedBlackTree();
 
 	void			Insert(K key, V value);
-	void			Remove(K key);
+	void			Delete(K key);
 	void			Clear();
 
 private:
 	Node*			Insert(K key, V value, Node* pCurrent);
-	Node*			Remove(K key, Node* pCurrent);
+	Node*			Delete(K key, Node* pCurrent);
 	void			Clear(Node* pCurrent);
 
 	static Node*	RotateRight(Node* pRoot);
@@ -81,7 +90,7 @@ inline void RedBlackTree<K, V>::Insert(K key, V value)
 	m_pRoot = Insert(key, value, m_pRoot);
 	
 	// 루트 노드는 항상 블랙
-	m_pRoot->isRed = false;
+	m_pRoot->state = Node::State::black;
 }
 
 template<typename K, typename V>
@@ -110,25 +119,25 @@ inline Node<K, V>* RedBlackTree<K, V>::Insert(K key, V value, Node* pCurrent)
 		{
 			// 왼쪽 자식 노드가 레드인지 확인
 			if ((pCurrent->pLeft != nullptr) &&
-				pCurrent->pLeft->isRed)
+				(pCurrent->state == Node::State::red))
 			{
 				pCurrent = HandleRedRed(pCurrent, 
-										Rotation::None);
+										Rotation::none);
 			}
 			else
 			{
 				pCurrent = HandleRedRed(pCurrent,
 										(m_isRedRedRight)
-										? Rotation::Left
-										: Rotation::RightLeft);
+										? Rotation::left
+										: Rotation::rightLeft);
 
 				m_isRotated = true;
 			}
 		}
 
 		// 레드 노드 연속으로 존재하는지 검사
-		m_isRedRed = (pCurrent->isRed &&
-					  pCurrent->pRight->isRed);
+		m_isRedRed = ((pCurrent->state == Node::State::red) &&
+					  (pCurrent->pRight->state == Node::State::red));
 
 		if (m_isRedRed)
 		{
@@ -151,25 +160,25 @@ inline Node<K, V>* RedBlackTree<K, V>::Insert(K key, V value, Node* pCurrent)
 		{
 			// 오른쪽 자식 노드가 레드인지 확인
 			if ((pCurrent->pRight != nullptr) &&
-				pCurrent->pRight->isRed)
+				(pCurrent->pRight->state == Node::State::red))
 			{
 				pCurrent = HandleRedRed(pCurrent,
-										Rotation::None);
+										Rotation::none);
 			}
 			else
 			{
 				pCurrent = HandleRedRed(pCurrent,
 										(m_isRedRedRight)
-										? Rotation::LeftRight
-										: Rotation::Right);
+										? Rotation::leftRight
+										: Rotation::right);
 
 				m_isRotated = true;
 			}
 		}
 
 		// 레드 노드 연속으로 존재하는지 검사
-		m_isRedRed = (pCurrent->isRed &&
-					  pCurrent->pLeft->isRed);
+		m_isRedRed = ((pCurrent->state == Node::State::red) &&
+					  (pCurrent->pLeft->state == Node::State::red));
 
 		if (m_isRedRed)
 		{
@@ -181,14 +190,71 @@ inline Node<K, V>* RedBlackTree<K, V>::Insert(K key, V value, Node* pCurrent)
 }
 
 template<typename K, typename V>
-inline void RedBlackTree<K, V>::Remove(K key)
+inline void RedBlackTree<K, V>::Delete(K key)
 {
 	if (m_pRoot == nullptr)
 	{
 		return;
 	}
 	
-	m_pRoot = Remove(key, m_pRoot);
+	m_pRoot = Delete(key, m_pRoot);
+	
+	// 루트 노드는 항상 블랙
+	m_pRoot->state = Node::State::black;
+}
+
+template<typename K, typename V>
+inline Node<K, V>* RedBlackTree<K, V>::Delete(K key, Node* pCurrent)
+{
+	// 삭제하려는 키가 트리에 없는 경우
+	if (pCurrent == nullptr)
+	{
+		return pCurrent;
+	}
+
+	// 오른쪽 서브트리에서 삭제 키 탐색
+	if (pCurrent->key < key)
+	{
+		pCurrent->pRight = Delete(key, pCurrent->pRight);
+		return pCurrent;
+	}
+	// 왼쪽 서브트리에서 삭제 키 탐색
+	else if (key < pCurrent->key)
+	{
+		pCurrent->pLeft = Delete(key, pCurrent->pLeft);
+		return pCurrent;
+	}
+
+	const bool isLeftChild = (pCurrent->pLeft != nullptr);
+	const bool isRightChild = (pCurrent->pRight != nullptr);
+
+	// 삭제하려는 노드의 자식이 없는 경우
+	if (!isLeftChild && !isRightChild)
+	{
+		delete pCurrent;
+		pCurrent = nullptr;	
+	}
+	// 삭제하려는 노드의 자식이 하나인 경우
+	else if (isLeftChild != isRightChild)
+	{
+		Node* pChild = (isLeftChild)
+					   ? pCurrent->pLeft 
+					   : pCurrent->pRight;
+
+		delete pCurrent;
+		pCurrent = pChild;
+	}
+	// 삭제하려는 노드의 자식이 두 개인 경우
+	else
+	{
+		Node* pSuccessor = GetSuccessor(pCurrent);
+
+		pCurrent->key = pSuccessor->key;
+		pCurrent->value = pSuccessor->value;
+		pCurrent->pRight = Delete(pSuccessor->key, pCurrent->pRight);
+	}
+
+	return pCurrent;
 }
 
 template<typename K, typename V>
@@ -209,62 +275,8 @@ inline void RedBlackTree<K, V>::Clear(Node* pCurrent)
 
 	Clear(pCurrent->pRight);
 	Clear(pCurrent->pLeft);
-	
+
 	delete pCurrent;
-}
-
-template<typename K, typename V>
-inline Node<K, V>* RedBlackTree<K, V>::Remove(K key, Node* pCurrent)
-{
-	// 삭제하려는 키가 트리에 없는 경우
-	if (pCurrent == nullptr)
-	{
-		return pCurrent;
-	}
-
-	// 오른쪽 서브트리에서 삭제 키 탐색
-	if (pCurrent->key < key)
-	{
-		pCurrent->pRight = Remove(key, pCurrent->pRight);
-		return pCurrent;
-	}
-	// 왼쪽 서브트리에서 삭제 키 탐색
-	else if (key < pCurrent->key)
-	{
-		pCurrent->pLeft = Remove(key, pCurrent->pLeft);
-		return pCurrent;
-	}
-
-	const bool isLeftChild = (pCurrent->pLeft != nullptr);
-	const bool isRightChild = (pCurrent->pRight != nullptr);
-
-	// 삭제하려는 노드의 자식이 없는 경우
-	if (!isLeftChild && !isRightChild)
-	{
-		delete pCurrent;
-		pCurrent = nullptr;
-	}
-	// 삭제하려는 노드의 자식이 하나인 경우
-	else if (isLeftChild != isRightChild)
-	{
-		Node* pChild = (isLeftChild)
-					   ? pCurrent->pLeft 
-					   : pCurrent->pRight;
-
-		delete pCurrent;
-		pCurrent = pChild;
-	}
-	// 삭제하려는 노드의 자식이 두 개인 경우
-	else
-	{
-		Node* pSuccessor = GetSuccessor(pCurrent);
-
-		pCurrent->key = pSuccessor->key;
-		pCurrent->value = pSuccessor->value;
-		pCurrent->pRight = Remove(pSuccessor->key, pCurrent->pRight);
-	}
-
-	return pCurrent;
 }
 
 template<typename K, typename V>
@@ -308,34 +320,34 @@ inline Node<K, V>* RedBlackTree<K, V>::HandleRedRed(Node* pGrandParent, Rotation
 {
 	switch (rotation)
 	{
-	case Rotation::None:
-		pGrandParent->isRed = true;
-		pGrandParent->pLeft->isRed = false;
-		pGrandParent->pRight->isRed = false;
+	case Rotation::none:
+		pGrandParent->state = Node::State::red;
+		pGrandParent->pLeft->state = Node::State::black;
+		pGrandParent->pRight->state = Node::State::black;
 		break;
 
-	case Rotation::Left:
+	case Rotation::left:
 		pGrandParent = RotateLeft(pGrandParent);
-		pGrandParent->isRed = false;
-		pGrandParent->pLeft->isRed = true;
+		pGrandParent->state = Node::State::black;
+		pGrandParent->pLeft->state = Node::State::red;
 		break;
 
-	case Rotation::LeftRight:
+	case Rotation::leftRight:
 		pGrandParent = RotateLeftRight(pGrandParent);
-		pGrandParent->isRed = false;
-		pGrandParent->pRight->isRed = true;
+		pGrandParent->state = Node::State::black;
+		pGrandParent->pRight->state = Node::State::red;
 		break;
 
-	case Rotation::Right:
+	case Rotation::right:
 		pGrandParent = RotateRight(pGrandParent);
-		pGrandParent->isRed = false;
-		pGrandParent->pRight->isRed = true;
+		pGrandParent->state = Node::State::black;
+		pGrandParent->pRight->state = Node::State::red;
 		break;
 
-	case Rotation::RightLeft:
+	case Rotation::rightLeft:
 		pGrandParent = RotateRightLeft(pGrandParent);
-		pGrandParent->isRed = false;
-		pGrandParent->pLeft->isRed = true;
+		pGrandParent->state = Node::State::black;
+		pGrandParent->pLeft->state = Node::State::red;
 		break;
 
 	default:
