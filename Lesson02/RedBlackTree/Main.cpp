@@ -19,6 +19,13 @@ int main()
 		rbTree.Delete(4);
 		rbTree.Delete(3);
 		rbTree.Delete(5);
+		rbTree.Delete(2);
+		rbTree.Delete(1);
+		rbTree.Delete(9);
+		rbTree.Delete(6);
+		rbTree.Delete(8);
+		rbTree.Delete(0);
+		rbTree.Delete(7);
 	}
 
 	return 0;
