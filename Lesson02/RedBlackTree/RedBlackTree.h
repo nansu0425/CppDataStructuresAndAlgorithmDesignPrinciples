@@ -123,7 +123,7 @@ inline Node<K, V>* RedBlackTree<K, V>::Insert(K key, V value, Node* pCurrent)
 		{
 			// 왼쪽 자식 노드가 레드인지 확인
 			if ((pCurrent->pLeft != nullptr) &&
-				(pCurrent->color == Node::Color::red))
+				(pCurrent->pLeft->color == Node::Color::red))
 			{
 				pCurrent = HandleConsecutiveReds(pCurrent, 
 												 Rotation::none);
@@ -213,13 +213,13 @@ inline void RedBlackTree<K, V>::Delete(K key)
 	// 루트 노드는 제거되거나 black 노드가 된다
 	switch (m_pRoot->color)
 	{
-	case Node::State::nilBlack:
+	case Node::Color::nilBlack:
 		delete m_pRoot;
 		m_pRoot = nullptr;
 		break;
 
-	case Node::State::blackBalck:
-	case Node::State::red:
+	case Node::Color::blackBlack:
+	case Node::Color::red:
 		m_pRoot->color = Node::Color::black;
 		break;
 
@@ -354,25 +354,26 @@ inline Node<K, V>* RedBlackTree<K, V>::HandleDoubleBlack(Node* pGrandParent)
 	Node* pLeftChild = pParent->pLeft;
 	Node* pRightChild = pParent->pRight;
 
-	const bool isParentBlack = (pParent->color == Node::State::black);
+	const bool isParentBlack = (pParent->color == Node::Color::black);
 
 	// double black 노드가 grand parent 노드의 왼쪽 자식인 경우
 	if (isDoubleBlackLeft)
 	{
 		// case 4
 		if (isParentBlack &&
-			(pRightChild->color == Node::State::red))
+			(pRightChild != nullptr) &&
+			(pRightChild->color == Node::Color::red))
 		{
 			// double black 노드의 extra black을 제거한다
 			switch (m_pDoubleBlack->color)
 			{
-			case Node::State::nilBlack:
+			case Node::Color::nilBlack:
 				delete m_pDoubleBlack;
 				pGrandParent->pLeft = nullptr;
 				break;
 
-			case Node::State::blackBlack:
-				m_pDoubleBlack->color = Node::State::black;
+			case Node::Color::blackBlack:
+				m_pDoubleBlack->color = Node::Color::black;
 				break;
 
 			default:
@@ -382,17 +383,18 @@ inline Node<K, V>* RedBlackTree<K, V>::HandleDoubleBlack(Node* pGrandParent)
 			m_pDoubleBlack = nullptr;
 
 			pParent->color = pGrandParent->color;
-			pGrandParent->color = Node::State::black;
-			pRightChild->color = Node::State::black;
+			pGrandParent->color = Node::Color::black;
+			pRightChild->color = Node::Color::black;
 
 			pGrandParent = RotateLeft(pGrandParent);
 		}
 		// case 3
 		else if (isParentBlack &&
-				 (pLeftChild->color == Node::State::red))
+				 (pLeftChild != nullptr) &&
+				 (pLeftChild->color == Node::Color::red))
 		{
-			pGrandParent->pRight->color = Node::State::red;
-			pLeftChild->color = Node::State::black;
+			pGrandParent->pRight->color = Node::Color::red;
+			pLeftChild->color = Node::Color::black;
 
 			pGrandParent->pRight = RotateRight(pGrandParent->pRight);
 			// case 4로 처리
@@ -404,13 +406,13 @@ inline Node<K, V>* RedBlackTree<K, V>::HandleDoubleBlack(Node* pGrandParent)
 			// double black 노드의 extra black을 제거한다
 			switch (m_pDoubleBlack->color)
 			{
-			case Node::State::nilBlack:
+			case Node::Color::nilBlack:
 				delete m_pDoubleBlack;
 				pGrandParent->pLeft = nullptr;
 				break;
 
-			case Node::State::blackBlack:
-				m_pDoubleBlack->color = Node::State::black;
+			case Node::Color::blackBlack:
+				m_pDoubleBlack->color = Node::Color::black;
 				break;
 
 			default:
@@ -419,17 +421,17 @@ inline Node<K, V>* RedBlackTree<K, V>::HandleDoubleBlack(Node* pGrandParent)
 			}
 			m_pDoubleBlack = nullptr;
 
-			pParent->color = Node::State::red;
+			pParent->color = Node::Color::red;
 
 			// grand parent 노드에 extra black 추가
 			switch (pGrandParent->color)
 			{
-			case Node::State::red:
-				pGrandParent->color = Node::State::black;
+			case Node::Color::red:
+				pGrandParent->color = Node::Color::black;
 				break;
 
-			case Node::State::black:
-				pGrandParent->color = Node::State::blackBlack;
+			case Node::Color::black:
+				pGrandParent->color = Node::Color::blackBlack;
 				m_pDoubleBlack = pGrandParent;
 
 			default:
@@ -440,8 +442,8 @@ inline Node<K, V>* RedBlackTree<K, V>::HandleDoubleBlack(Node* pGrandParent)
 		// case 1
 		else if (!isParentBlack)
 		{
-			pGrandParent->color = Node::State::red;
-			pGrandParent->pRight = Node::State::black;
+			pGrandParent->color = Node::Color::red;
+			pParent->color = Node::Color::black;
 
 			pGrandParent = RotateLeft(pGrandParent);
 			// case 2,3,4 중 하나로 처리
@@ -453,39 +455,42 @@ inline Node<K, V>* RedBlackTree<K, V>::HandleDoubleBlack(Node* pGrandParent)
 	{
 		// case 4
 		if (isParentBlack &&
-			(pLeftChild->color == Node::State::red))
+			(pLeftChild != nullptr) &&
+			(pLeftChild->color == Node::Color::red))
 		{
 			// double black 노드의 extra black을 제거한다
 			switch (m_pDoubleBlack->color)
 			{
-			case Node::State::nilBlack:
+			case Node::Color::nilBlack:
 				delete m_pDoubleBlack;
 				pGrandParent->pRight = nullptr;
 				break;
 
-			case Node::State::blackBlack:
-				m_pDoubleBlack->color = Node::State::black;
+			case Node::Color::blackBlack:
+				m_pDoubleBlack->color = Node::Color::black;
 				break;
 
 			default:
 				assert(true);
 				break;
 			}
+			m_pDoubleBlack = nullptr;
 
 			pParent->color = pGrandParent->color;
-			pGrandParent->color = Node::State::black;
-			pLeftChild->color = Node::State::black;
+			pGrandParent->color = Node::Color::black;
+			pLeftChild->color = Node::Color::black;
 
 			pGrandParent = RotateRight(pGrandParent);
 		}
 		// case 3
 		else if (isParentBlack &&
-				 (pRightChild->color == Node::State::red))
+				 (pRightChild != nullptr) &&
+				 (pRightChild->color == Node::Color::red))
 		{
-			pGrandParent->pLeft->color = Node::State::red;
-			pRightChild->color = Node::State::black;
+			pGrandParent->pLeft->color = Node::Color::red;
+			pRightChild->color = Node::Color::black;
 
-			pGrandParent->pRight = RotateLeft(pGrandParent->pRight);
+			pGrandParent->pLeft = RotateLeft(pGrandParent->pLeft);
 			// case 4로 처리
 			pGrandParent = HandleDoubleBlack(pGrandParent);
 		}
@@ -495,13 +500,13 @@ inline Node<K, V>* RedBlackTree<K, V>::HandleDoubleBlack(Node* pGrandParent)
 			// double black 노드의 extra black을 제거한다
 			switch (m_pDoubleBlack->color)
 			{
-			case Node::State::nilBlack:
+			case Node::Color::nilBlack:
 				delete m_pDoubleBlack;
 				pGrandParent->pRight = nullptr;
 				break;
 
-			case Node::State::blackBlack:
-				m_pDoubleBlack->color = Node::State::black;
+			case Node::Color::blackBlack:
+				m_pDoubleBlack->color = Node::Color::black;
 				break;
 
 			default:
@@ -510,17 +515,17 @@ inline Node<K, V>* RedBlackTree<K, V>::HandleDoubleBlack(Node* pGrandParent)
 			}
 			m_pDoubleBlack = nullptr;
 
-			pParent->color = Node::State::red;
+			pParent->color = Node::Color::red;
 
 			// grand parent 노드에 extra black 추가
 			switch (pGrandParent->color)
 			{
-			case Node::State::red:
-				pGrandParent->color = Node::State::black;
+			case Node::Color::red:
+				pGrandParent->color = Node::Color::black;
 				break;
 
-			case Node::State::black:
-				pGrandParent->color = Node::State::blackBlack;
+			case Node::Color::black:
+				pGrandParent->color = Node::Color::blackBlack;
 				m_pDoubleBlack = pGrandParent;
 
 			default:
@@ -531,8 +536,8 @@ inline Node<K, V>* RedBlackTree<K, V>::HandleDoubleBlack(Node* pGrandParent)
 		// case 1
 		else if (!isParentBlack)
 		{
-			pGrandParent->color = Node::State::red;
-			pGrandParent->pLeft = Node::State::black;
+			pGrandParent->color = Node::Color::red;
+			pParent->color = Node::Color::black;
 
 			pGrandParent = RotateRight(pGrandParent);
 			// case 2,3,4 중 하나로 처리
