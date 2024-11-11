@@ -57,6 +57,7 @@ public:
 	void			Insert(K key, V value);
 	void			Delete(K key);
 	void			Clear();
+	bool			ViolatesProperties();
 
 private:
 	Node*			Insert(K key, V value, Node* pCurrent);
@@ -65,6 +66,7 @@ private:
 	Node*			AddExtraBlack(Node* pCurrent);
 	Node*			RemoveExtraBlack();
 	Node*			HandleDoubleBlack(Node* pGrandParent);
+	bool			ViolatesProperties(Node* pCurrent, bool isParentRed, int numberBlacks, int& maxNumberBlacks);
 
 	static Node*	RotateRight(Node* pRoot);
 	static Node*	RotateLeft(Node* pRoot);
@@ -96,6 +98,8 @@ inline void RedBlackTree<K, V>::Insert(K key, V value)
 	
 	// 루트 노드는 항상 블랙
 	m_pRoot->color = Node::Color::black;
+
+	assert(!ViolatesProperties());
 }
 
 template<typename K, typename V>
@@ -228,6 +232,8 @@ inline void RedBlackTree<K, V>::Delete(K key)
 		assert(true);
 		break;
 	}
+
+	assert(!ViolatesProperties());
 }
 
 template<typename K, typename V>
@@ -487,6 +493,78 @@ inline void RedBlackTree<K, V>::Clear()
 	Clear(m_pRoot);
 
 	m_pRoot = nullptr;
+}
+
+template<typename K, typename V>
+inline bool RedBlackTree<K, V>::ViolatesProperties()
+{
+	if (m_pRoot == nullptr)
+	{
+		return false;
+	}
+
+	if (m_pRoot->color == Node::Color::black)
+	{
+		int maxNumberBlacks = -1;
+
+		if (!ViolatesProperties(m_pRoot->pLeft, false, 0, maxNumberBlacks))
+		{
+			return ViolatesProperties(m_pRoot->pRight, false, 0, maxNumberBlacks);
+		}
+	}
+
+	return true;
+}
+
+template<typename K, typename V>
+inline bool RedBlackTree<K, V>::ViolatesProperties(Node* pCurrent, bool isParentRed, int numberBlacks, int& maxNumberBlacks)
+{
+	// leaf 노드의 자식(nil노드)까지 내려온 경우
+	if (pCurrent == nullptr)
+	{
+		assert(maxNumberBlacks >= -1);
+
+		if (maxNumberBlacks == -1)
+		{
+			maxNumberBlacks = numberBlacks;
+			return false;
+		}
+
+		if (maxNumberBlacks > -1)
+		{
+			return (maxNumberBlacks != numberBlacks);
+		}
+	}
+
+	bool isCurrentRed = false;
+
+	// red와 black 둘 중 하나여야 한다
+	switch (pCurrent->color)
+	{
+	case Node::Color::red:
+		// 연속적인 레드 노드 존재
+		if (isParentRed)
+		{
+			return true;
+		}
+
+		isCurrentRed = true;
+		break;
+
+	case Node::Color::black:
+		++numberBlacks;
+		break;
+
+	default:
+		return true;
+	}
+
+	if (!ViolatesProperties(pCurrent->pLeft, isCurrentRed, numberBlacks, maxNumberBlacks))
+	{
+		return ViolatesProperties(pCurrent->pRight, isCurrentRed, numberBlacks, maxNumberBlacks);
+	}
+
+	return true;
 }
 
 template<typename K, typename V>
