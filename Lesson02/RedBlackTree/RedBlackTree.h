@@ -62,7 +62,7 @@ private:
 	Node*			Insert(K key, V value, Node* pCurrent);
 	Node*			Delete(K key, Node* pCurrent);
 	void			Clear(Node* pCurrent);
-	Node*			AddExtraBlack(Node* pCurrent, Node* pChild);
+	Node*			AddExtraBlack(Node* pCurrent);
 	Node*			RemoveExtraBlack();
 	Node*			HandleDoubleBlack(Node* pGrandParent);
 
@@ -266,6 +266,7 @@ inline Node<K, V>* RedBlackTree<K, V>::Delete(K key, Node* pCurrent)
 
 		pCurrent->key = pSuccessor->key;
 		pCurrent->value = pSuccessor->value;
+
 		pCurrent->pRight = Delete(pSuccessor->key, pCurrent->pRight);
 		pCurrent = HandleDoubleBlack(pCurrent);
 	}
@@ -286,7 +287,19 @@ inline Node<K, V>* RedBlackTree<K, V>::Delete(K key, Node* pCurrent)
 
 		// 삭제할 노드가 black이면 extra black을 붙인다
 		case Node::Color::black:
-			pCurrent = AddExtraBlack(pCurrent, pChild);
+			// leaf 노드인 경우 nil노드가 되면서 black이 붙는다
+			if (pChild == nullptr)
+			{
+				pCurrent->color = Node::Color::nilBlack;
+				m_pDoubleBlack = pCurrent;
+				break;
+			}
+
+			// 현재 노드 삭제 후 자식 노드로 대체
+			delete pCurrent;
+			pCurrent = pChild;
+
+			pCurrent = AddExtraBlack(pCurrent);
 			break;
 
 		default:
@@ -299,22 +312,9 @@ inline Node<K, V>* RedBlackTree<K, V>::Delete(K key, Node* pCurrent)
 }
 
 template<typename K, typename V>
-inline Node<K, V>* RedBlackTree<K, V>::AddExtraBlack(Node* pCurrent, Node* pChild)
+inline Node<K, V>* RedBlackTree<K, V>::AddExtraBlack(Node* pCurrent)
 {
 	assert(m_pDoubleBlack == nullptr);
-
-	// leaf 노드인 경우 nil노드가 되면서 black이 붙는다
-	if (pChild == nullptr)
-	{
-		pCurrent->color = Node::Color::nilBlack;
-		m_pDoubleBlack = pCurrent;
-
-		return pCurrent;
-	}
-
-	// 현재 노드 삭제 후 자식 노드로 대체
-	delete pCurrent;
-	pCurrent = pChild;
 
 	switch (pCurrent->color)
 	{
@@ -417,24 +417,8 @@ inline Node<K, V>* RedBlackTree<K, V>::HandleDoubleBlack(Node* pGrandParent)
 		else if (isParentBlack)
 		{
 			pGrandParent->pLeft = RemoveExtraBlack();
-
 			pParent->color = Node::Color::red;
-
-			// grand parent 노드에 extra black 추가
-			switch (pGrandParent->color)
-			{
-			case Node::Color::red:
-				pGrandParent->color = Node::Color::black;
-				break;
-
-			case Node::Color::black:
-				pGrandParent->color = Node::Color::doubleBlack;
-				m_pDoubleBlack = pGrandParent;
-
-			default:
-				assert(true);
-				break;
-			}
+			pGrandParent = AddExtraBlack(pGrandParent);
 		}
 		// case 1
 		else if (!isParentBlack)
@@ -479,24 +463,8 @@ inline Node<K, V>* RedBlackTree<K, V>::HandleDoubleBlack(Node* pGrandParent)
 		else if (isParentBlack)
 		{
 			pGrandParent->pRight = RemoveExtraBlack();
-
 			pParent->color = Node::Color::red;
-
-			// grand parent 노드에 extra black 추가
-			switch (pGrandParent->color)
-			{
-			case Node::Color::red:
-				pGrandParent->color = Node::Color::black;
-				break;
-
-			case Node::Color::black:
-				pGrandParent->color = Node::Color::doubleBlack;
-				m_pDoubleBlack = pGrandParent;
-
-			default:
-				assert(true);
-				break;
-			}
+			pGrandParent = AddExtraBlack(pGrandParent);
 		}
 		// case 1
 		else if (!isParentBlack)
