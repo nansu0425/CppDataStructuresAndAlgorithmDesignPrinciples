@@ -10,28 +10,7 @@ FileSystem::FileSystem()
 	: m_ptrRootDir(new Node("", nullptr, true))
 	, m_ptrCurDir(m_ptrRootDir)
 {
-	// insert test code
-	insert("hello", "", false);
-	insert("world", "\\", true);
-	insert("good", "", false);
-
-	m_ptrCurDir = m_ptrCurDir->ptrsChild[1];
-
-	insert("bye", "", false);
-	insert("today", "\\world", false);
-	insert("is", "", true);
-
-	insert("good", "is", true);
-	insert("super", "\\world\\is", false);
-	insert("exciting", "is", false);
-
-	m_ptrCurDir = m_ptrRootDir;
-	m_ptrCurDir = m_ptrCurDir->ptrsChild[1];
-
-	// print test code
-	printListPath(std::string("\\world"));
-	printListPath(std::string("is"));
-	printListPath(std::string("is\\good"));
+	std::cout << *this << std::endl;
 }
 
 std::string FileSystem::getCurPath() const
@@ -174,6 +153,47 @@ void FileSystem::printListPath(const std::string& path)
 
 	std::cout << getPath(ptrDir) << std::endl;
 	printListDir(ptrDir);
+}
+
+void FileSystem::moveCurDir(const std::string& path)
+{
+	if (path.empty())
+	{
+		return;
+	}
+
+	Node* ptrDir = nullptr;
+	int lenPath = static_cast<int>(path.size());
+
+	// 절대 경로인 경우
+	if (path[0] == '\\')
+	{
+		// 루트 경로 이동
+		if (path == "\\")
+		{
+			m_ptrCurDir = m_ptrRootDir;
+			std::cout << *this << std::endl;;
+			return;
+		}
+
+		ptrDir = searchPath(m_ptrRootDir, 1, lenPath, path);
+	}
+	// 상대 경로 탐색
+	else
+	{
+		ptrDir = searchPath(m_ptrCurDir, 0, lenPath, path);
+	}
+
+	// 찾는 디렉토리가 없거나 디렉토리가 아닌 경우
+	if ((ptrDir == nullptr) ||
+		(!ptrDir->isDir))
+	{
+		std::cout << "Failed to search " + path << std::endl;
+		return;
+	}
+	
+	m_ptrCurDir = ptrDir;
+	std::cout << *this << std::endl;
 }
 
 std::string FileSystem::getPath(Node* ptrDir) const

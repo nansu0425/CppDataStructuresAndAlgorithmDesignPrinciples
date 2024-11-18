@@ -29,6 +29,7 @@ public:
 	bool				isPath(const std::string& path);
 	void				insert(const std::string& name, const std::string& path, bool isDir);
 	void				printListPath(const std::string& path);
+	void				moveCurDir(const std::string& path);
 
 private:
 	Str					getPath(Node* ptrDir) const;
