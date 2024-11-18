@@ -4,11 +4,9 @@
 #include <string>
 #include <iostream>
 
-
-
 class FileSystem
 {
-private:
+public:
 	struct Node;
 
 	using				Str = std::string;
@@ -28,11 +26,14 @@ public:
 						FileSystem();
 
 	Str					getCurPath() const;
+	bool				isPath(const std::string& path);
 
 private:
 	Str					getPath(Node* ptrDir) const;
+	Node*				searchPath(Node* ptrCur, int idxNameFirst, int lenPath, const std::string& path);
 
 private:
+	Node*				m_ptrRootDir = nullptr;
 	Node*				m_ptrCurDir = nullptr;
 
 };
