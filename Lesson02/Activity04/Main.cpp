@@ -13,7 +13,7 @@ int main()
 	std::cout << fs.isPath(std::string("\\world\\today"));
 	std::cout << fs.isPath(std::string("\\world\\is"));
 	std::cout << fs.isPath(std::string("\\world\\is\\good"));
-	
+
 	// false
 	std::cout << fs.isPath(std::string("\\world\\today\\good"));
 	std::cout << fs.isPath(std::string("\\good\\today\\good"));

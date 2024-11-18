@@ -28,10 +28,12 @@ public:
 	Str					getCurPath() const;
 	bool				isPath(const std::string& path);
 	void				insert(const std::string& name, const std::string& path, bool isDir);
+	void				printListPath(const std::string& path);
 
 private:
 	Str					getPath(Node* ptrDir) const;
 	Node*				searchPath(Node* ptrCur, int idxNameFirst, int lenPath, const std::string& path);
+	void				printListDir(Node* ptrDir);
 
 private:
 	Node*				m_ptrRootDir = nullptr;
