@@ -27,6 +27,7 @@ public:
 
 	Str					getCurPath() const;
 	bool				isPath(const std::string& path);
+	void				insert(const std::string& name, const std::string& path, bool isDir);
 
 private:
 	Str					getPath(Node* ptrDir) const;
