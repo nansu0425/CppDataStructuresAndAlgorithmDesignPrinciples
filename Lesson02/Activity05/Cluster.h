@@ -31,7 +31,9 @@ public:
 	const Node& operator[](int idxNode) const;
 
 	void		printInfoNodes() const;
-
+	int			getNumNodes() const { return m_nodes.size(); }
+	int			getCapacityNode() const { return m_nodes[0].m_dataList.size(); }
+		 
 private:
 	std::vector<Node>		m_nodes;
 };

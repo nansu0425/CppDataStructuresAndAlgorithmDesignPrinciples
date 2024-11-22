@@ -46,6 +46,9 @@ bool Cluster::Node::isNextData() const
 Cluster::Cluster(int numNodes, int capacityNode)
 	: m_nodes(std::vector<Node>(numNodes))
 {
+	assert((numNodes > 0) &&
+		   (capacityNode > 0));
+
 	std::random_device rd;
 	std::mt19937 rng(rd());
 	std::uniform_int_distribution<int> distData(1, 100);

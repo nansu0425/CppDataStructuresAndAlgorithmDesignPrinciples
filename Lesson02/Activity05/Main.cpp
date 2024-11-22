@@ -1,4 +1,5 @@
 ﻿#include "Cluster.h"
+#include "StreamEngine.h"
 
 int main()
 {
@@ -9,10 +10,12 @@ int main()
 
 	cluster.printInfoNodes();
 
-	while (cluster[4].isNextData())
-	{
-		cluster[4].popNextData();
-	}
+	StreamEngine streamEng;
+
+	streamEng.convertClusterData2StreamData(cluster);
+	streamEng.printStreamData();
+
+	std::cout << std::endl;
 
 	cluster.printInfoNodes();
 
