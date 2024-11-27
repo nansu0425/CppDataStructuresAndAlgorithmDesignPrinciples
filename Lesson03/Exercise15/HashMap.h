@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include <iostream>
 #include <vector>
 
 class HashMap
@@ -8,14 +7,17 @@ class HashMap
 public:
 	HashMap(int capacity);
 
-	int hash1(int value) const;
-	int hash2(int value) const;
+	int hashLeft(int value) const;
+	int hashRight(int value) const;
 
 	std::vector<int>::iterator find(int value);
-
+	void remove(int value);
+	void insert(int value);
 
 private:
-	std::vector<int>	m_values1;
-	std::vector<int>	m_values2;
+	void insertRecursively(int value, int cntCall, bool isLeft);
+
+private:
+	std::vector<int>	m_table;
 	int					m_capacity;
 };

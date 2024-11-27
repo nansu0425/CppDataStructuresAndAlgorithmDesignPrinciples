@@ -1,16 +1,38 @@
-﻿#include <iostream>
-#include <vector>
-#include <algorithm>
+﻿#include "HashMap.h"
+
+#include <iostream>
 
 int main()
 {
-	std::vector<int> values = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+	HashMap hm = HashMap(7);
 
-	std::vector<int>::iterator iter = 
-		values.erase(std::remove_if(values.begin(), 
-									values.end(), 
-									[](const int &value) { return (value > 3); }), 
-					 values.end());
+	hm.insert(10);
+	hm.insert(20);
+	hm.insert(30);
+	std::cout << std::endl;
+
+	hm.insert(104);
+	hm.insert(2);
+	hm.insert(70);
+	hm.insert(9);
+	hm.insert(90);
+	hm.insert(2);
+	hm.insert(7);
+	std::cout << std::endl;
+
+	hm.insert(14); // 사이클 발생!
+	std::cout << std::endl;
+
+	hm.remove(10);
+	hm.remove(30);
+	hm.remove(20);
+	std::cout << std::endl;
+
+	hm.remove(90);
+	hm.remove(9);
+	hm.remove(7);
+	hm.remove(2);
+	std::cout << std::endl;
 
 	return 0;
 }
